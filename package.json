@@ -1,0 +1,13 @@
+{
+  "name": "brocast",
+  "description": "An experiment to distribute the bandwidth among video viewers",
+  "version": "0.0.1",
+  "engines": {
+    "node": "0.8.x",
+    "npm":"1.1.x"
+  },
+  "dependencies": {
+    "express": "3.4.x",
+    "smoke-signals": "0.0.1"
+  }
+}
