@@ -100,4 +100,86 @@ describe("Server", function() {
 
   });
 
+  describe("#updateIndex", function() {
+
+    it("should update the index", function(done) {
+      var source = new EventSource(host + "/rooms/foo");
+      var uid, token;
+
+      source.addEventListener("uid", function(event) {
+        var message = JSON.parse(event.data);
+
+        req.post({
+          url: '/rooms/foo/files/bar/index',
+          body: JSON.stringify({token: message.token, chunk: 0}),
+        }, function (error, response, body) {
+          expect(error).to.equal(null);
+          expect(response.statusCode).to.equal(200);
+
+          var swarm = server.hive.get("bar");
+          var index = swarm.chunks[0];
+          expect(swarm.chunks[0]).to.deep.equal([message.uid]);
+
+          source.close();
+          done();
+        });
+      });
+    });
+
+    it("should notify others the index has been updated", function(done) {
+      var user1 = new EventSource(host + "/rooms/foo");
+      var user2 = new EventSource(host + "/rooms/foo");
+
+      user1.addEventListener("uid", function(event) {
+        var message = JSON.parse(event.data);
+
+        req.post({
+          url: '/rooms/foo/files/bar/register',
+          body: JSON.stringify({token: message.token}),
+        }, function (error, response, body) {
+          expect(error).to.equal(null);
+          expect(response.statusCode).to.equal(200);
+
+          req.post({
+            url: '/rooms/foo/files/bar/index',
+            body: JSON.stringify({token: message.token, chunk: 0}),
+          }, function (error, response, body) {
+            expect(error).to.equal(null);
+            expect(response.statusCode).to.equal(200);
+          });
+        });
+      });
+
+      user2.addEventListener("uid", function(event) {
+        var message = JSON.parse(event.data);
+
+        req.post({
+          url: '/rooms/foo/files/bar/register',
+          body: JSON.stringify({token: message.token}),
+        }, function (error, response, body) {
+          expect(error).to.equal(null);
+          expect(response.statusCode).to.equal(200);
+        });
+      });
+
+      var nbUpdate = 1;
+      user2.addEventListener("indexupdate", function(event) {
+        var message = JSON.parse(event.data);
+        var swarm = server.hive.get("bar");
+
+        expect(message).to.deep.equal({index: swarm.toJSON()});
+
+        if (nbUpdate === 2) {
+          user1.close();
+          user2.close();
+          done();
+        }
+
+        nbUpdate += 1;
+      });
+    });
+
+    it("should avoid duplicates");
+  });
+
 });
