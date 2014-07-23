@@ -9,5 +9,16 @@
   "dependencies": {
     "express": "3.4.x",
     "smoke-signals": "0.0.1"
+  },
+  "devDependencies": {
+    "chai": "1.5.x",
+    "mocha": "1.8.x",
+    "request": "2.33.x",
+    "sinon": "1.9.x",
+    "eventsource": "0.1.x",
+    "jshint": "2.5.x"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/jshint server/*.js && ./node_modules/.bin/mocha test"
   }
 }
