@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "express": "3.4.x",
-    "smoke-signals": "0.0.1"
+    "smoke-signals": "git://github.com/tOkeshu/smoke-signals.git#4c64077182f8a18076e7f084c00f1c81f57e4a68"
   },
   "devDependencies": {
     "chai": "1.5.x",
@@ -19,6 +19,7 @@
     "jshint": "2.5.x"
   },
   "scripts": {
+    "postinstall": "wget http://ur1.ca/htl37 -O client/example.webm",
     "test": "./node_modules/.bin/jshint server/*.js && ./node_modules/.bin/mocha test"
   }
 }
