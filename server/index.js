@@ -29,7 +29,7 @@ BrocastServer.prototype.register = function(req, res) {
   var user   = room.users.getByToken(req.body.token);
 
   swarm.users.add(user);
-  user.connection.sse("indexupdate", {index: swarm});
+  user.connection.sse("indexstate", {index: swarm, swarm: fileId});
 
   res.json(200, "");
 };
