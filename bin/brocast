@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+
+var BrocastServer = require("../server");
+var server = new BrocastServer({root: "/api"});
+
+var room = server.rooms.create("foo", 60000);
+room.on("heartbeat", function() {
+  room.users.forEach(function(user) {
+    user.connection.ssePing();
+  });
+});
+room.startHeartbeat();
+
+server.run();
+console.log("Listening on port 7665");
+
