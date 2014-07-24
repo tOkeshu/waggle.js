@@ -11,6 +11,12 @@ function BrocastServer(config) {
   var prefix = this.config.root + "/rooms/:room";
   this.app.post(prefix + "/files/:file/register", this.register.bind(this));
   this.app.post(prefix + "/files/:file/index", this.updateIndex.bind(this));
+
+  var OPTIONS = {root: __dirname + "/../"};
+  this.app.use('/static', express.static(__dirname + '/../client'));
+  this.app.get("/", function(req, res) {
+    res.sendfile('/client/index.html', OPTIONS);
+  });
 }
 
 inherits(BrocastServer, SmokeServer);
