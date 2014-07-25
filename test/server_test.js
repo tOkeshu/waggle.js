@@ -8,7 +8,8 @@ var request = require('request');
 var EventSource = require('eventsource');
 
 var WaggleServer = require("../server");
-var Rooms = require("../../../webrtc/smoke-signals.git/server/rooms");
+var Swarm = require("../server");
+var Rooms = require("smoke-signals").Rooms;
 
 var host = "http://localhost:7665";
 var req = {
@@ -27,7 +28,7 @@ var req = {
 };
 
 describe("Server", function() {
-  var server, sandbox, clock;
+  var server, sandbox;
 
   before(function(done) {
     server = new WaggleServer();
@@ -36,13 +37,12 @@ describe("Server", function() {
 
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
-    clock = sinon.useFakeTimers();
     server.rooms = new Rooms();
     server.rooms.create("foo", 60000);
+    server.hive.create("bar", {fileSize: 9100652, chunkSize: 512 * 1024});
   });
 
   afterEach(function() {
-    clock.restore();
     sandbox.restore();
   });
 
@@ -87,10 +87,13 @@ describe("Server", function() {
         });
       });
 
-      source.addEventListener("indexupdate", function(event) {
+      source.addEventListener("indexstate", function(event) {
         var message = JSON.parse(event.data);
 
-        expect(message).to.deep.equal({index: swarm.toJSON()});
+        expect(message).to.deep.equal({
+          index: swarm.toJSON(),
+          swarm: swarm.id
+        });
 
         source.close();
         done();
@@ -162,20 +165,18 @@ describe("Server", function() {
         });
       });
 
-      var nbUpdate = 1;
       user2.addEventListener("indexupdate", function(event) {
         var message = JSON.parse(event.data);
         var swarm = server.hive.get("bar");
 
-        expect(message).to.deep.equal({index: swarm.toJSON()});
+        expect(message).to.deep.equal({
+          index: swarm.toJSON(),
+          swarm: swarm.id
+        });
 
-        if (nbUpdate === 2) {
-          user1.close();
-          user2.close();
-          done();
-        }
-
-        nbUpdate += 1;
+        user1.close();
+        user2.close();
+        done();
       });
     });
 

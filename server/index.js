@@ -46,7 +46,7 @@ WaggleServer.prototype.updateIndex = function(req, res) {
     if (peer === user)
       return;
 
-    peer.connection.sse("indexupdate", {index: swarm});
+    peer.connection.sse("indexupdate", {index: swarm, swarm: fileId});
   });
 
   res.json(200, "");
