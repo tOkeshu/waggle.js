@@ -132,9 +132,11 @@ describe("Server", function() {
     it("should notify others the index has been updated", function(done) {
       var user1 = new EventSource(host + "/rooms/foo");
       var user2 = new EventSource(host + "/rooms/foo");
+      var uid;
 
       user1.addEventListener("uid", function(event) {
         var message = JSON.parse(event.data);
+        uid = message.uid;
 
         req.post({
           url: '/rooms/foo/files/bar/register',
@@ -170,11 +172,77 @@ describe("Server", function() {
         var swarm = server.hive.get("bar");
 
         expect(message).to.deep.equal({
-          index: swarm.toJSON(),
-          swarm: swarm.id
+          swarm: swarm.id,
+          chunk: 0,
+          peersToAdd: [uid],
+          peersToRemove: []
         });
 
         user1.close();
+        user2.close();
+        done();
+      });
+    });
+
+    it("should update the index when someone left", function(done) {
+      var user1 = new EventSource(host + "/rooms/foo");
+      var user2 = new EventSource(host + "/rooms/foo");
+      var uid;
+
+      user1.addEventListener("uid", function(event) {
+        var message = JSON.parse(event.data);
+        uid = message.uid;
+
+        req.post({
+          url: '/rooms/foo/files/bar/register',
+          body: JSON.stringify({token: message.token}),
+        }, function (error, response, body) {
+          expect(error).to.equal(null);
+          expect(response.statusCode).to.equal(200);
+
+          req.post({
+            url: '/rooms/foo/files/bar/index',
+            body: JSON.stringify({token: message.token, chunk: 0}),
+          }, function() {
+            req.post({
+              url: '/rooms/foo/files/bar/index',
+              body: JSON.stringify({token: message.token, chunk: 1}),
+            }, function() {
+              user1.close();
+            });
+          });
+        });
+      });
+
+      user2.addEventListener("uid", function(event) {
+        var message = JSON.parse(event.data);
+
+        req.post({
+          url: '/rooms/foo/files/bar/register',
+          body: JSON.stringify({token: message.token}),
+        }, function (error, response, body) {
+          expect(error).to.equal(null);
+          expect(response.statusCode).to.equal(200);
+        });
+      });
+
+      var nbUpdate = 1;
+      user2.addEventListener("indexupdate", function(event) {
+        var message = JSON.parse(event.data);
+        var swarm = server.hive.get("bar");
+
+        if (nbUpdate < 3) {
+          nbUpdate += 1;
+          return;
+        }
+
+        expect(message).to.deep.equal({
+          swarm: swarm.id,
+          chunk: 0,
+          peersToAdd: [],
+          peersToRemove: [uid]
+        });
+
         user2.close();
         done();
       });

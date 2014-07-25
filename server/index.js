@@ -17,9 +17,41 @@ function WaggleServer(config) {
   this.app.get("/", function(req, res) {
     res.sendfile('/client/index.html', OPTIONS);
   });
+
+  this.hive.on("add", this._setupSwarm.bind(this));
 }
 
 inherits(WaggleServer, SmokeServer);
+
+WaggleServer.prototype._setupSwarm = function(swarm) {
+  swarm.on("chunk:peers:add", function(chunkId, user) {
+    swarm.users.forEach(function(peer) {
+      if (peer === user)
+        return;
+
+      peer.connection.sse("indexupdate", {
+        swarm: swarm.id,
+        chunk: chunkId,
+        peersToAdd: [user.uid],
+        peersToRemove: []
+      });
+    });
+  });
+
+  swarm.on("chunk:peers:remove", function(chunkId, user) {
+    swarm.users.forEach(function(peer) {
+      if (peer === user)
+        return;
+
+      peer.connection.sse("indexupdate", {
+        swarm: swarm.id,
+        chunk: chunkId,
+        peersToAdd: [],
+        peersToRemove: [user.uid]
+      });
+    });
+  });
+};
 
 WaggleServer.prototype.register = function(req, res) {
   var roomId = req.param('room');
@@ -41,14 +73,7 @@ WaggleServer.prototype.updateIndex = function(req, res) {
   var swarm  = this.hive.get(fileId);
   var user   = room.users.getByToken(req.body.token);
 
-  swarm.chunk(req.body.chunk).availableFrom(user.uid);
-  swarm.users.forEach(function(peer) {
-    if (peer === user)
-      return;
-
-    peer.connection.sse("indexupdate", {index: swarm, swarm: fileId});
-  });
-
+  swarm.chunk(req.body.chunk).availableFrom(user);
   res.json(200, "");
 };
 
