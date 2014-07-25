@@ -18,6 +18,12 @@ Start the server:
 
 Then open a browser to [http://localhost:7665](http://localhost:7665)
 
+What about the name
+-------------------
+
+The term "waggle" is a reference to the
+[waggle dance](https://en.wikipedia.org/wiki/Waggle_dance) performed
+by honey bees.
 
 License
 -------
