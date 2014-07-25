@@ -23,19 +23,23 @@ Swarm.prototype = {
   }
 };
 
-var SIZE = 9100652;
-var CHUNK_SIZE = 512 * 1024; // 512 kb
-var NB_CHUNKS = Math.ceil(SIZE / CHUNK_SIZE);
-var chunks = {};
-for (var i = 0; i < NB_CHUNKS; i++) {
-  chunks[i] = [];
-}
-
 function Hive() {
-  this.swarms = {bar: new Swarm("bar", chunks)};
+  this.swarms = {};
 }
 
 Hive.prototype = {
+  create: function(swarmId, options) {
+    var nbChunks = Math.ceil(options.fileSize / options.chunkSize);
+    var swarm, chunks = {};
+
+    for (var i = 0; i < nbChunks; i++)
+      chunks[i] = [];
+
+    swarm = new Swarm(swarmId, chunks);
+    this.swarms[swarmId] = swarm;
+    return swarm;
+  },
+
   get: function(swarmId) {
     return this.swarms[swarmId];
   }
