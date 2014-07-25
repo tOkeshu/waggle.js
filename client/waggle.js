@@ -4,6 +4,7 @@ var Waggler = (function() {
 
   function Chunk(id) {
     this.id = parseInt(id);
+    this.peers = new Set();
   }
 
   Chunk.prototype = {
@@ -20,9 +21,17 @@ var Waggler = (function() {
       return false;
     },
 
+    availableFrom: function(uid) {
+      this.peers.add(uid);
+    },
+
+    notAvailableFrom: function(uid) {
+      this.peers.delete(uid);
+    },
+
     range: function() {
       var size =  (512 * 1024); // 512 kb
-      var start = parseInt(this.id) * size;
+      var start = this.id * size;
       var end = start + size - 1;
       return start + '-' + end;
     }
@@ -206,16 +215,23 @@ var Waggler = (function() {
     _onIndexUpdated: function(event) {
       var message = JSON.parse(event.data);
       var swarm = this.hive.get(message.swarm);
-      swarm.chunk(message.chunk).availableFrom(message.uid);
+      var chunk = swarm.chunk(message.chunk);
+
+      message.peersToAdd.forEach(function(uid) {
+        chunk.availableFrom(uid);
+      });
+      message.peersToRemove.forEach(function(uid) {
+        chunk.notAvailableFrom(uid);
+      });
     },
 
     _setupSwarm: function(swarm) {
       swarm.on("chunk", function(chunk) {
         var mediaSource = this.videos.get(swarm.id);
         mediaSource.sourceBuffers[0].appendBuffer(chunk.data);
-        // this._post('/api/rooms/' + this.room + '/files/' + fileId + '/index', {
-        //   chunk: chunk.id
-        // });
+        this._post('/api/rooms/' + this.room + '/files/' + swarm.id + '/index', {
+          chunk: chunk.id
+        });
       }.bind(this));
 
       swarm.on("chunk:wanted", function(chunk) {
