@@ -1,4 +1,4 @@
-var Brocaster = (function() {
+var Waggler = (function() {
   function Peers() {
   }
 
@@ -125,7 +125,7 @@ var Brocaster = (function() {
     }
   };
 
-  function Brocaster(room) {
+  function Waggler(room) {
     this.room   = room;
     this.peers  = new Peers();
     this.hive   = new Hive();
@@ -145,7 +145,7 @@ var Brocaster = (function() {
     // this.peers.on("add", this._setupPeer.bind(this));
   }
 
-  Brocaster.prototype = {
+  Waggler.prototype = {
     listenFor: function(fileUrl, el) {
       var fileId = "bar"; // btoa(fileUrl);
       this._post('/api/rooms/' + this.room + '/files/' + fileId + '/register');
@@ -328,6 +328,6 @@ var Brocaster = (function() {
     },
   };
 
-  return Brocaster;
+  return Waggler;
 }());
 

@@ -4,7 +4,7 @@ var express = require("express");
 
 var Hive = require("./hive");
 
-function BrocastServer(config) {
+function WaggleServer(config) {
   SmokeServer.call(this, config);
   this.hive = new Hive();
 
@@ -19,9 +19,9 @@ function BrocastServer(config) {
   });
 }
 
-inherits(BrocastServer, SmokeServer);
+inherits(WaggleServer, SmokeServer);
 
-BrocastServer.prototype.register = function(req, res) {
+WaggleServer.prototype.register = function(req, res) {
   var roomId = req.param('room');
   var fileId = req.param('file');
   var room   = this.rooms.get(roomId);
@@ -34,7 +34,7 @@ BrocastServer.prototype.register = function(req, res) {
   res.json(200, "");
 };
 
-BrocastServer.prototype.updateIndex = function(req, res) {
+WaggleServer.prototype.updateIndex = function(req, res) {
   var roomId = req.param('room');
   var fileId = req.param('file');
   var room   = this.rooms.get(roomId);
@@ -52,5 +52,5 @@ BrocastServer.prototype.updateIndex = function(req, res) {
   res.json(200, "");
 };
 
-module.exports = BrocastServer;
+module.exports = WaggleServer;
 

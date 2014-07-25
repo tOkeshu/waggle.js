@@ -1,5 +1,5 @@
 {
-  "name": "brocast",
+  "name": "waggle",
   "description": "An experiment to distribute the bandwidth among video viewers",
   "version": "0.0.1",
   "engines": {
