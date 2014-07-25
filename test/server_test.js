@@ -7,7 +7,7 @@ var sinon = require("sinon");
 var request = require('request');
 var EventSource = require('eventsource');
 
-var BrocastServer = require("../server");
+var WaggleServer = require("../server");
 var Rooms = require("../../../webrtc/smoke-signals.git/server/rooms");
 
 var host = "http://localhost:7665";
@@ -30,7 +30,7 @@ describe("Server", function() {
   var server, sandbox, clock;
 
   before(function(done) {
-    server = new BrocastServer();
+    server = new WaggleServer();
     server.run(done);
   });
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-var BrocastServer = require("../server");
-var server = new BrocastServer({root: "/api"});
+var WaggleServer = require("../server");
+var server = new WaggleServer({root: "/api"});
 
 var room = server.rooms.create("foo", 60000);
 room.on("heartbeat", function() {

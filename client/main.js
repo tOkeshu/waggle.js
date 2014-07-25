@@ -1,7 +1,7 @@
 (function() {
   var el = document.querySelector("video");
-  window.brocaster = new Brocaster("foo");
-  window.brocaster.source.on("uid", function() {
-    brocaster.listenFor(el.dataset.src, el);
+  window.waggler = new Waggler("foo");
+  window.waggler.source.on("uid", function() {
+    waggler.listenFor(el.dataset.src, el);
   });
 }())
