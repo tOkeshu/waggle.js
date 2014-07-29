@@ -52,7 +52,8 @@ var Waggler = (function() {
     setState: function(index) {
       var chunk;
       for (var chunkId in index) {
-        chunk = new Chunk(chunkId);
+        chunk = new Chunk(chunkId, this.id);
+        chunk.peers = new Set(index[chunkId]);
         chunk.on("data", this.emit.bind(this, "chunk", chunk));
 
         this.chunks[chunkId] = chunk;
