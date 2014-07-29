@@ -1,9 +1,8 @@
 var Waggler = (function() {
-  function Peers() {
-  }
 
-  function Chunk(id) {
+  function Chunk(id, swarm) {
     this.id = parseInt(id);
+    this.swarm = swarm;
     this.peers = new Set();
   }
 
@@ -15,10 +14,6 @@ var Waggler = (function() {
     set data(d){
       this._data = d;
       this.emit("data");
-    },
-
-    hasPeers: function() {
-      return false;
     },
 
     availableFrom: function(uid) {
@@ -72,8 +67,8 @@ var Waggler = (function() {
     peer: function(uid) {
       return {
         has: function(chunkId) {
-          return this.peers[uid][chunkId];
-        }
+          return this.chunks[chunkId].peers.has(uid);
+        }.bind(this)
       };
     },
 
@@ -110,6 +105,12 @@ var Waggler = (function() {
 
     get: function(swarmId) {
       return this.swarms[swarmId];
+    },
+
+    forEach: function(callback) {
+      Object.keys(this.swarms).forEach(function(swarmId) {
+        callback(this.swarms[swarmId]);
+      }.bind(this));
     }
   };
 
@@ -146,13 +147,13 @@ var Waggler = (function() {
     this.source = new EventSource("/api/rooms/" + this.room);
     this.source.on = this.source.addEventListener.bind(this.source);
     this.source.on("uid", this._onUID.bind(this));
-    // this.source.on("offer",        this._onOffer.bind(this));
-    // this.source.on("answer",       this._onAnswer.bind(this));
-    // this.source.on("icecandidate", this._onIceCandidate.bind(this));
+    this.source.on("offer",        this._onOffer.bind(this));
+    this.source.on("answer",       this._onAnswer.bind(this));
+    this.source.on("icecandidate", this._onIceCandidate.bind(this));
     this.source.on("indexstate",      this._onIndexState.bind(this));
     this.source.on("indexupdate",     this._onIndexUpdated.bind(this));
 
-    // this.peers.on("add", this._setupPeer.bind(this));
+    this.peers.on("add", this._setupPeer.bind(this));
   }
 
   Waggler.prototype = {
@@ -170,40 +171,40 @@ var Waggler = (function() {
     },
 
     _onOffer: function(event) {
-      // var message = JSON.parse(event.data);
-      // var peer = this.peers.add(message.peer);
+      var message = JSON.parse(event.data);
+      var peer = this.peers.add(message.peer);
 
-      // peer.createAnswer(message.offer, function(answer) {
-      //   this._signal({
-      //     type: 'answer',
-      //     peer: peer.id,
-      //     payload: {
-      //       answer: answer
-      //     }
-      //   });
-      // }.bind(this));;
+      peer.createAnswer(message.offer, function(answer) {
+        this._signal({
+          type: 'answer',
+          peer: peer.id,
+          payload: {
+            answer: answer
+          }
+        });
+      }.bind(this));;
     },
 
     _onAnswer: function(event) {
-      // var message = JSON.parse(event.data);
-      // this.peers.get(message.peer).complete(message.answer, function() {});
+      var message = JSON.parse(event.data);
+      this.peers.get(message.peer).complete(message.answer, function() {});
     },
 
     _onIceCandidate: function(event) {
-      // var message = JSON.parse(event.data);
-      // this.peers.get(message.peer).addIceCandidate(message.candidate);
+      var message = JSON.parse(event.data);
+      this.peers.get(message.peer).addIceCandidate(message.candidate);
     },
 
     _newIceCandidate: function(peer, event) {
-      // if (event.candidate) {
-      //   this._signal({
-      //     type: 'icecandidate',
-      //     peer: peer.id,
-      //     payload: {
-      //       candidate: event.candidate
-      //     }
-      //   });
-      // }
+      if (event.candidate) {
+        this._signal({
+          type: 'icecandidate',
+          peer: peer.id,
+          payload: {
+            candidate: event.candidate
+          }
+        });
+      }
     },
 
     _onIndexState: function(event) {
@@ -236,8 +237,8 @@ var Waggler = (function() {
       }.bind(this));
 
       swarm.on("chunk:wanted", function(chunk) {
-        console.log("we want chunk #" + chunk.id);
-        if (chunk.hasPeers())
+        console.log("we want chunk #" + chunk.id, chunk.peers);
+        if (chunk.peers.size > 0)
           this._downloadFromPeers(chunk);
         else
           this._downloadFromServer(swarm.fileUrl, chunk);
@@ -268,52 +269,57 @@ var Waggler = (function() {
     _setupPeer: function(peer) {
       // peer.on("icecandidate", this._newIceCandidate.bind(this, peer));
 
-      // peer.on("connected", function() {
-      //   hive.forEach(function(swarm) {
-      //     swarm.wantedChunks().forEach(function(chunkId) {
-      //       if (swarm.peer(peer.id).has(chunkId))
-      //         peer.request(swarm.id, chunkId);
-      //     });
-      //   });
-      // });
+      peer.on("connected", function() {
+        console.log("connected with " + peer.id);
+        this.hive.forEach(function(swarm) {
+          swarm.wanted.forEach(function(chunkId) {
+            if (swarm.peer(peer.id).has(chunkId))
+              peer.request(swarm.chunk(chunkId));
+          });
+        });
+      }.bind(this));
 
-      // peer.on("request", function(swarmId, chunkId) {
-      //   var swarm = hive.get(swarmId);
-      //   var chunk = swarm.chunk(chunkId);
-      //   peer.send(chunk);
-      // });
+      peer.on("request", function(message) {
+        console.log("received request", message);
+        var swarm = this.hive.get(message.swarmId);
+        var chunk = swarm.chunk(message.chunkId);
+        peer.send(chunk);
+      }.bind(this));
 
-      // peer.on("chunk", function(swarmId, chunkId, data) {
-      //   var swarm = hive.get(swarmId);
-      //   var chunk = swarm.chunk(chunkId);
-      //   chunk.data = data;
-      // });
+      peer.on("chunk", function(message) {
+        console.log("received chunk", message);
+        var swarm = this.hive.get(message.swarmId);
+        var chunk = swarm.chunk(message.chunkId);
+        console.log(message.blobs[0]);
+        chunk.data = message.blobs[0];
+      }.bind(this));
     },
 
     _downloadFromPeers: function(chunk) {
-      // // XXX: peers() should return a sample
-      // chunk.peers().forEach(function(uid) {
-      //   var peer;
+      // TODO: correctly pick up a sample of peers
+      var peers = [[...chunk.peers][0]];
+      peers.forEach(function(uid) {
+        var peer = this.peers.get(uid);
 
-      //   if (this.peers.isConnected(uid)) {
-      //     peer = this.peers.get(uid);
-      //     peer.request(chunkId);
-      //   } if (this.peers.willConnect(uid)) {
-      //     peer = this.peers.get(uid);
-      //     peer.queueRequest(chunkId);
-      //   } else {
-      //     peer = this.peers.add(uid);
-      //     peer.createOffer(function(offer) {
-      //       this._signal({
-      //         type: 'offer',
-      //         peer: uid,
-      //         payload: {
-      //           offer: offer
-      //         }
-      //       });
-      //     });
-      //   }
-      // });
+        if (peer) {
+          if (peer.isConnected())
+            peer.request(chunk);
+          // if (peer.willConnect())
+          //   peer.queueRequest(chunkId);
+          return;
+        }
+
+        peer = this.peers.add(uid);
+        peer.createOffer(function(offer) {
+          this._signal({
+            type: 'offer',
+            peer: uid,
+            payload: {
+              offer: offer
+            }
+          });
+        }.bind(this));
+      }.bind(this));
     },
 
     _downloadFromServer: function(fileUrl, chunk) {
@@ -341,7 +347,7 @@ var Waggler = (function() {
     },
 
     _signal: function(message) {
-      this._post('/api/rooms' + this.room, message);
+      this._post('/api/rooms/' + this.room, message);
     },
   };
 
