@@ -1,4 +1,55 @@
 var Waggler = (function() {
+  var QUORUM = 3;
+
+  var take = {
+    /**
+     * Take *up to* n *distinct* random elements from an array
+     *
+     * Examples:
+     *
+     *   take.upTo(3).from([1, 2, 3]); // [3, 1, 2]
+     *   take.upTo(4).from([1, 2, 3]); // [2, 1, 3]
+     */
+    upTo: function(n) {
+      return {
+        from: function(array) {
+          n = Math.min(n, array.length);
+          return take.exactly(n).from(array);
+        }
+      }
+    },
+
+    /**
+     * Take *exactly* n *distinct* random elements from an array
+     *
+     * Examples:
+     *
+     *   take.exactly(3).from([1, 2, 3]); // [3, 1, 2]
+     *   take.exactly(4).from([1, 2, 3]); // []
+     */
+    exactly: function(n) {
+      return {
+        from: function(array) {
+          array = array.slice(0);
+          var values, value, index;
+
+          if (array.length < n)
+            return [];
+
+          values = [];
+          while (n > 0) {
+            index = Math.floor(Math.random() * array.length);
+            values.push(array[index]);
+
+            array.splice(index, 1);
+            n -= 1;
+          }
+
+          return values;
+        }
+      };
+    }
+  }
 
   function Chunk(id, swarm) {
     this.id = parseInt(id);
@@ -238,7 +289,7 @@ var Waggler = (function() {
 
       swarm.on("chunk:wanted", function(chunk) {
         console.log("we want chunk #" + chunk.id, chunk.peers);
-        if (chunk.peers.size > 0)
+        if (chunk.peers.size >= QUORUM)
           this._downloadFromPeers(chunk);
         else
           this._downloadFromServer(swarm.fileUrl, chunk);
@@ -287,29 +338,32 @@ var Waggler = (function() {
       }.bind(this));
 
       peer.on("chunk", function(message) {
-        console.log("received chunk", message);
         var swarm = this.hive.get(message.swarmId);
         var chunk = swarm.chunk(message.chunkId);
-        console.log(message.blobs[0]);
-        chunk.data = message.blobs[0];
+
+        // We may received the chunk via another peer, so don't
+        // bother.
+        if (!chunk.data) {
+          chunk.data = message.blobs[0];
+          console.log("received chunk", message);
+        }
       }.bind(this));
     },
 
     _downloadFromPeers: function(chunk) {
-      // TODO: correctly pick up a sample of peers
-      var peers = [[...chunk.peers][0]];
+      var peers;
+
+      peers = take.upTo(QUORUM)
+        .from(this.peers.in(chunk.peers).connected());
       peers.forEach(function(uid) {
         var peer = this.peers.get(uid);
+        peer.request(chunk);
+      }.bind(this));
 
-        if (peer) {
-          if (peer.isConnected())
-            peer.request(chunk);
-          // if (peer.willConnect())
-          //   peer.queueRequest(chunkId);
-          return;
-        }
-
-        peer = this.peers.add(uid);
+      peers = take.exactly(QUORUM - peers.length)
+        .from(this.peers.in(chunk.peers).notConnected());
+      peers.forEach(function(uid) {
+        var peer = this.peers.add(uid);
         peer.createOffer(function(offer) {
           this._signal({
             type: 'offer',

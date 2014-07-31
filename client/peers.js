@@ -167,6 +167,27 @@ var Peers = (function() {
       return peer;
     },
 
+    in: function(peers) {
+      peers = [...peers];
+      return {
+        connected: function() {
+          return peers.reduce(function(acc, uid) {
+            if (this.isConnected(uid))
+              acc.push(uid);
+            return acc;
+          }.bind(this), []);
+        }.bind(this),
+
+        notConnected: function() {
+          return peers.reduce(function(acc, uid) {
+            if (!this.isConnected(uid))
+              acc.push(uid);
+            return acc;
+          }.bind(this), []);
+        }.bind(this)
+      };
+    },
+
     isConnected: function(id) {
       var peer = this.peers[id];
       if (!peer)
