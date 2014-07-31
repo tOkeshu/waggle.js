@@ -36,7 +36,8 @@ Swarm.prototype = extend(Swarm.prototype, {
       remove: function(user) {
         var peers = this.chunks[chunkId];
         var index = peers.indexOf(user.uid);
-        this.chunks[chunkId].splice(index, 1);
+        if (index !== -1)
+          this.chunks[chunkId].splice(index, 1);
         this.emit("chunk:peers:remove", chunkId, user);
       }.bind(this)
     };
