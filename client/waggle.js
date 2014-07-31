@@ -326,11 +326,11 @@ var Waggler = (function() {
       var xhr = new XMLHttpRequest();
 
       xhr.onload = function(e) {
-        chunk.data = new Uint8Array(xhr.response);
+        if (xhr.status === 206)
+          chunk.data = new Uint8Array(xhr.response);
       }.bind(this);
 
       xhr.open("GET", fileUrl, true);
-      console.log("range", chunk.range());
       xhr.setRequestHeader('Range', 'bytes=' + chunk.range());
       xhr.responseType = "arraybuffer";
       xhr.send();
