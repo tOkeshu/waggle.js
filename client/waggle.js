@@ -197,12 +197,12 @@ var Waggler = (function() {
 
     this.source = new EventSource("/api/rooms/" + this.room);
     this.source.on = this.source.addEventListener.bind(this.source);
-    this.source.on("uid", this._onUID.bind(this));
+    this.source.on("uid",          this._onUID.bind(this));
     this.source.on("offer",        this._onOffer.bind(this));
     this.source.on("answer",       this._onAnswer.bind(this));
     this.source.on("icecandidate", this._onIceCandidate.bind(this));
-    this.source.on("indexstate",      this._onIndexState.bind(this));
-    this.source.on("indexupdate",     this._onIndexUpdated.bind(this));
+    this.source.on("indexstate",   this._onIndexState.bind(this));
+    this.source.on("indexupdate",  this._onIndexUpdated.bind(this));
 
     this.peers.on("add", this._setupPeer.bind(this));
   }
