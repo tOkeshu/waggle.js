@@ -329,6 +329,12 @@ var Waggler = (function() {
               peer.request(swarm.chunk(chunkId));
           });
         });
+
+        this.emit("peers:connected", peer);
+      }.bind(this));
+
+      peer.on("disconnected", function() {
+        this.emit("peers:disconnected", peer);
       }.bind(this));
 
       peer.on("request", function(message) {
@@ -346,6 +352,7 @@ var Waggler = (function() {
         // bother.
         if (!chunk.data) {
           chunk.data = message.blob;
+          this.emit("chunk", chunk, "peers");
           console.log("received chunk", message);
         }
       }.bind(this));
@@ -381,8 +388,10 @@ var Waggler = (function() {
       var xhr = new XMLHttpRequest();
 
       xhr.onload = function(e) {
-        if (xhr.status === 206)
+        if (xhr.status === 206) {
           chunk.data = new Uint8Array(xhr.response);
+          this.emit("chunk", chunk, "server");
+        }
       }.bind(this);
 
       xhr.open("GET", fileUrl, true);
@@ -405,6 +414,10 @@ var Waggler = (function() {
       this._post('/api/rooms/' + this.room, message);
     },
   };
+
+  MicroEvent.mixin(Waggler);
+  Waggler.prototype.on = Waggler.prototype.bind;
+  Waggler.prototype.emit = Waggler.prototype.trigger;
 
   return Waggler;
 }());

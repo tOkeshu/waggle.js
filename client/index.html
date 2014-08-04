@@ -6,13 +6,29 @@
     <title>Waggle.js</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <link href="/static/waggle.css" rel="stylesheet">
   </head>
 
   <body>
-    <h1>Waggle.js experiment</h1>
-    <div class="video-container">
-      <video autoplay controls data-src="/static/example.webm"></video>
-    </div>
+    <header>
+      <h1>Waggle.js</h1>
+    </header>
+
+    <article>
+      <p class="peers-connected">Connected to <span>0</span> peers</p>
+      <section class="video-container">
+        <video autoplay controls data-src="/static/example.webm"></video>
+      </section>
+
+      <section class="legend">
+        <p><span class="from-server"></span>Chunk downloaded from the server</p>
+        <p><span class="from-peers"></span>Chunk downloaded from the swarm</p>
+      </section>
+
+      <section class="chunks">
+      </section>
+    </article>
+
     <script type="text/javascript" src="/static/microevent.js"></script>
     <script type="text/javascript" src="/static/webrtc-shim.js"></script>
     <script type="text/javascript" src="/static/tnetbin.js"></script>
