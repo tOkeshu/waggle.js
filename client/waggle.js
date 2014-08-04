@@ -286,6 +286,9 @@ var Waggler = (function() {
         this._post('/api/rooms/' + this.room + '/files/' + swarm.id + '/index', {
           chunk: chunk.id
         });
+        setTimeout(function() {
+          swarm.want(chunk.id + 1);
+        }, 1000);
       }.bind(this));
 
       swarm.on("chunk:wanted", function(chunk) {
@@ -308,14 +311,14 @@ var Waggler = (function() {
       //   swarm.want(0);
       // });
 
-      video.addEventListener("timeupdate", function() {
-        var currentChunkId = parseInt(video.currentTime / 5);
-        var nextChunkId = currentChunkId + 1;
-        var nextChunk = swarm.chunk(nextChunkId);
+      // video.addEventListener("timeupdate", function() {
+      //   var currentChunkId = parseInt(video.currentTime / 2);
+      //   var nextChunkId = currentChunkId + 1;
+      //   var nextChunk = swarm.chunk(nextChunkId);
 
-        if (nextChunk && !nextChunk.data)
-          swarm.want(nextChunkId);
-      });
+      //   if (nextChunk && !nextChunk.data)
+      //     swarm.want(nextChunkId);
+      // });
     },
 
     _setupPeer: function(peer) {

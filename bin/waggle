@@ -4,7 +4,7 @@ var WaggleServer = require("../server");
 var server = new WaggleServer({root: "/api"});
 var room;
 
-server.hive.create("bar", {fileSize: 9100652, chunkSize: 512 * 1024});
+server.hive.create("bar", {fileSize: 158367779, chunkSize: 512 * 1024});
 
 room = server.rooms.create("foo", 60000);
 room.on("heartbeat", function() {

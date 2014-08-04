@@ -19,7 +19,7 @@
     "jshint": "2.5.x"
   },
   "scripts": {
-    "postinstall": "wget http://ur1.ca/htl37 -O client/example.webm",
+    "postinstall": "[ -f client/tears_of_steel_720p.webm ] && echo -n || (cd client/ && wget http://people.mozilla.org/~rgauthier/tears_of_steel_720p.webm)",
     "test": "./node_modules/.bin/jshint server/*.js && ./node_modules/.bin/mocha test"
   }
 }
