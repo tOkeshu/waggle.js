@@ -21,6 +21,7 @@ var Peers = (function() {
     dc = pc.createDataChannel("waggle", {id: 0, negotiated: true});
     dc.onopen = this._onDatachannelOpen.bind(this);
     dc.onmessage = this._onMessage.bind(this);
+    dc.onclose = this.trigger.bind(this, "disconnected");
     dc.binaryType = "arraybuffer";
 
     this.id = id;
@@ -106,6 +107,9 @@ var Peers = (function() {
 
       if (this.pc.iceConnectionState === "connected")
         this.trigger("connected");
+      if (this.pc.iceConnectionState === "disconnected" ||
+          this.pc.iceConnectionState === "closed")
+        this.trigger("diconnected");
     },
 
     _send: function(message, blob) {
