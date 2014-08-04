@@ -60,7 +60,7 @@ var tnetbin = (function() {
                    obj instanceof Uint32Array  ||
                    obj instanceof Float32Array ||
                    obj instanceof Float64Array) {
-          s = new Uint8Array(obj.buffer);
+          s = new Uint8Array(obj.buffer, obj.byteOffset, obj.byteLength);
           tag = new Uint8Array([STRING]);
         }else if (obj instanceof Array) { // List
           s = obj.map(this._encodeToArrayBuffer.bind(this));
@@ -120,7 +120,8 @@ var tnetbin = (function() {
                    obj instanceof Uint32Array  ||
                    obj instanceof Float32Array ||
                    obj instanceof Float64Array) {
-          s = largeArrayToString(obj.buffer);
+          s = new Uint8Array(obj.buffer, obj.byteOffset, obj.byteLength);
+          s = largeArrayToString(s);
           tag = ',';
         } else if (obj instanceof Array) { // List
           s = obj.map(this.encode.bind(this)).join('');
@@ -286,8 +287,16 @@ var tnetbin = (function() {
   }
 
   function toArrayBuffer(data) {
-    if (data instanceof ArrayBuffer)
+    if (data instanceof ArrayBuffer) // ArrayBuffer
       return new Uint8Array(data);
+    if (data instanceof Int8Array    || // ArrayBufferView
+        data instanceof Uint8Array   ||
+        data instanceof Uint16Array  ||
+        data instanceof Int32Array   ||
+        data instanceof Uint32Array  ||
+        data instanceof Float32Array ||
+        data instanceof Float64Array)
+      return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
 
     var len  = data.length;
     var view = new Uint8Array(len);

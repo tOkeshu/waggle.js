@@ -45,7 +45,7 @@ var Peers = (function() {
         type: "chunk",
         swarmId: chunk.swarm,
         chunkId: chunk.id
-      }, [chunk.data]);
+      }, chunk.data);
     },
 
     createOffer: function(callback) {
@@ -108,25 +108,25 @@ var Peers = (function() {
         this.trigger("connected");
     },
 
-    _send: function(message, blobs) {
+    _send: function(message, blob) {
       if (this.dc.readyState === "connecting") {
-        this.queue.push([message, blobs]);
+        this.queue.push([message, blob]);
         return;
       }
 
       message = encoder.encode(message);
-      blobs = blobs ? encoder.encode(blobs) : new Uint8Array(0);
+      blob = blob ? encoder.encode(blob) : new Uint8Array(0);
       // TODO: handle errors when the datachannel is closed
-      this.dc.send(tnetbin.concatArrayBuffers([message, blobs]));
+      this.dc.send(tnetbin.concatArrayBuffers([message, blob]));
     },
 
     _onDatachannelOpen: function() {
-      var item, message, blobs;
+      var item, message, blob;
       while (this.queue.length > 0) {
         item = this.queue.shift();
         message = item[0];
-        blobs = item[1];
-        this._send(message, blobs);
+        blob = item[1];
+        this._send(message, blob);
       }
     },
 
@@ -139,9 +139,9 @@ var Peers = (function() {
 
       if (remain) {
         payload = blobDecoder.decode(remain);
-        message.blobs = payload.value;
+        message.blob = payload.value;
       } else
-        message.blobs = []
+        message.blob = undefined
 
       this.trigger(message.type, message);
     }

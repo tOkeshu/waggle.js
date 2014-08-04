@@ -219,6 +219,7 @@ var Waggler = (function() {
       var message = JSON.parse(event.data);
       this.me = message.uid;
       this.token = message.token;
+      console.log("UID/TOKEN", this.me, this.token);
     },
 
     _onOffer: function(event) {
@@ -344,7 +345,7 @@ var Waggler = (function() {
         // We may received the chunk via another peer, so don't
         // bother.
         if (!chunk.data) {
-          chunk.data = message.blobs[0];
+          chunk.data = message.blob;
           console.log("received chunk", message);
         }
       }.bind(this));
