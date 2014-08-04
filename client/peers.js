@@ -206,6 +206,10 @@ var Peers = (function() {
       return peer.pc.iceConnectionState === "connected";
     },
 
+    connected: function() {
+      return this.in(Object.keys(this.peers)).connected();
+    },
+
     forEach: function(callback) {
       Object.keys(this.peers).forEach(function(id) {
         callback(this.peers[id]);
