@@ -22,6 +22,11 @@ header h1 {
   font-size: 24px;
 }
 
+.alert {
+  padding: 15px;
+  background-color: #A94442;
+}
+
 .peers-connected {
   float: right;
 }
@@ -84,5 +89,9 @@ article {
 video {
   box-shadow: 0px 0px 15px #000;
   max-width: 700px;
+}
+
+.hide {
+  display: none;
 }
 
