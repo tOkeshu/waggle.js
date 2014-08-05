@@ -288,7 +288,7 @@ var Waggler = (function() {
         });
         setTimeout(function() {
           swarm.want(chunk.id + 1);
-        }, 1000);
+        }, 0);
       }.bind(this));
 
       swarm.on("chunk:wanted", function(chunk) {
