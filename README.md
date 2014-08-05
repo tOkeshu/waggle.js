@@ -3,6 +3,11 @@ Waggle.js
 
 An experiment to distribute the bandwidth among video viewers.
 
+First visitors download chunks from the server and announce which
+chunks they have to the swarm. Once there is *enough* visitors,
+subsequent ones will request chunks from the swarm and not from the
+server, thus reducing bandwidth cost for the server.
+
 Getting started
 ---------------
 
