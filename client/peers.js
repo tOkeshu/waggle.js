@@ -177,6 +177,10 @@ var Peers = (function() {
       return peer;
     },
 
+    remove: function(id) {
+      delete this.peers[id];
+    },
+
     in: function(peers) {
       peers = [...peers];
       return {
