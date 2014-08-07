@@ -203,6 +203,7 @@ var Waggler = (function() {
     this.source.on("icecandidate", this._onIceCandidate.bind(this));
     this.source.on("indexstate",   this._onIndexState.bind(this));
     this.source.on("indexupdate",  this._onIndexUpdated.bind(this));
+    this.source.on("buddyleft",    this._onPeerLeft.bind(this));
 
     this.peers.on("add", this._setupPeer.bind(this));
   }
@@ -277,6 +278,19 @@ var Waggler = (function() {
       message.peersToRemove.forEach(function(uid) {
         chunk.notAvailableFrom(uid);
       });
+    },
+
+    _onPeerLeft: function(event) {
+      var message = JSON.parse(event.data);
+      var uid = message.peer;
+      var peer = this.peers.get(uid);
+
+      if (!peer)
+        return;
+
+      peer.disconnect();
+      this.peers.remove(uid);
+      this.emit("peers:disconnected", peer);
     },
 
     _setupSwarm: function(swarm) {
