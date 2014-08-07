@@ -323,6 +323,17 @@ var Waggler = (function() {
         else
           this._downloadFromServer(swarm.fileUrl, chunk);
       }.bind(this));
+
+      // Download the chunk from the server if we did not receive it
+      // in less than 2 seconds
+      // XXX: what if the chunk takes more that 2 seconds to download
+      // from the server?
+      swarm.on("chunk:wanted", function(chunk) {
+        setTimeout(function() {
+          if (!chunk.data)
+            this._downloadFromServer(swarm.fileUrl, chunk);
+        }.bind(this), 2000);
+      }.bind(this));
     },
 
     _setupVideo: function(video, swarmId) {
