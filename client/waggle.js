@@ -318,7 +318,9 @@ var Waggler = (function() {
 
       swarm.on("chunk:wanted", function(chunk) {
         console.log("we want chunk #" + chunk.id, chunk.peers);
-        if (chunk.peers.size >= QUORUM)
+        var candidates = this.peers.in(chunk.peers).reachable();
+
+        if (candidates.length >= QUORUM)
           this._downloadFromPeers(chunk);
         else
           this._downloadFromServer(swarm.fileUrl, chunk);
@@ -373,7 +375,13 @@ var Waggler = (function() {
       }.bind(this));
 
       peer.on("disconnected", function() {
+        this.peers.remove(peer.id);
         this.emit("peers:disconnected", peer);
+      }.bind(this));
+
+      peer.on("unreachable", function() {
+        this.peers.remove(peer.id);
+        this.peers.unreachable.add(peer.id);
       }.bind(this));
 
       peer.on("request", function(message) {
@@ -398,17 +406,18 @@ var Waggler = (function() {
     },
 
     _downloadFromPeers: function(chunk) {
+      var candidates = this.peers.in(chunk.peers).reachable();
       var peers;
 
       peers = take.upTo(QUORUM)
-        .from(this.peers.in(chunk.peers).connected());
+        .from(this.peers.in(candidates).connected());
       peers.forEach(function(uid) {
         var peer = this.peers.get(uid);
         peer.request(chunk);
       }.bind(this));
 
       peers = take.exactly(QUORUM - peers.length)
-        .from(this.peers.in(chunk.peers).notConnected());
+        .from(this.peers.in(candidates).notConnected());
       peers.forEach(function(uid) {
         var peer = this.peers.add(uid);
         peer.createOffer(function(offer) {
