@@ -127,6 +127,9 @@ var Waggler = (function() {
       if (this.wanted.indexOf(chunkId) !== -1)
         return;
 
+      if (!this.chunks[chunkId])
+        return;
+
       this.wanted.push(chunkId);
       var chunk = this.chunks[chunkId];
 
