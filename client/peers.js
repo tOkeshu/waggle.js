@@ -97,6 +97,12 @@ var Peers = (function() {
       return false;
     },
 
+    disconnect: function() {
+      if (this.dc)
+        this.dc.close();
+      this.pc.close();
+    },
+
     _onIceStateChange: function() {
       // XXX: display an error if the ice connection failed
       console.log("ice: " + this.pc.iceConnectionState);
