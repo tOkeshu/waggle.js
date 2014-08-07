@@ -28,6 +28,7 @@ var Peers = (function() {
     this.pc = pc;
     this.dc = dc;
     this.queue = [];
+    this._timeout = null;
   }
 
   Peer.prototype = {
@@ -56,6 +57,8 @@ var Peers = (function() {
           callback(offer);
         });
       }.bind(this), function() {});
+
+      this.timeout.after(3).seconds();
     },
 
     createAnswer: function(offer, callback) {
@@ -67,11 +70,14 @@ var Peers = (function() {
           });
         }.bind(this), function() {});
       }.bind(this), function() {});
+
+      this.timeout.after(3).seconds();
     },
 
     complete: function(answer, callback) {
       answer = new RTCSessionDescription(answer);
       this.pc.setRemoteDescription(answer, callback);
+      this.timeout.clear();
     },
 
     addIceCandidate: function(candidate) {
@@ -103,6 +109,24 @@ var Peers = (function() {
       this.pc.close();
     },
 
+    get timeout() {
+      return {
+        after: function(n) {
+          return {
+            seconds: function() {
+              var trigger = this.trigger.bind(this, "unreachable");
+              var time = n * 1000;
+              this._timeout = setTimeout(trigger, time);
+            }.bind(this)
+          };
+        }.bind(this),
+
+        clear: function() {
+          clearTimeout(this._timeout);
+        }.bind(this)
+      };
+    },
+
     _onIceStateChange: function() {
       // XXX: display an error if the ice connection failed
       console.log("ice: " + this.pc.iceConnectionState);
@@ -111,8 +135,11 @@ var Peers = (function() {
         this.trigger("failure");
       }
 
-      if (this.pc.iceConnectionState === "connected")
+      if (this.pc.iceConnectionState === "connected") {
+        this.timeout.clear();
         this.trigger("connected");
+      }
+
       if (this.pc.iceConnectionState === "disconnected" ||
           this.pc.iceConnectionState === "closed")
         this.trigger("diconnected");
