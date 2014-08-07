@@ -190,6 +190,7 @@ var Peers = (function() {
 
   function Peers(config) {
     this.peers = {};
+    this.unreachable = new Set();
   }
 
   Peers.prototype = {
@@ -223,6 +224,17 @@ var Peers = (function() {
           return peers.reduce(function(acc, uid) {
             if (!this.isConnected(uid))
               acc.push(uid);
+
+            return acc;
+          }.bind(this), []);
+        }.bind(this),
+
+        reachable: function() {
+          return peers.reduce(function(acc, uid) {
+            var mayBeReachable = !this.unreachable.has(uid);
+            if (mayBeReachable)
+              acc.push(uid);
+
             return acc;
           }.bind(this), []);
         }.bind(this)
