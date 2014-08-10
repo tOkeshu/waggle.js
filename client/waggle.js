@@ -1,5 +1,10 @@
 var Waggler = (function() {
   var QUORUM = 3;
+  var WINDOW_SIZE = 10;
+  var CHUNK_SIZE = 512 * 1024 // 512 kb;
+  var FILE_SIZE = 158367779 // in bytes;
+  var VIDEO_DURATION = 734 // in seconds
+  var DATA_PER_SECOND = FILE_SIZE / VIDEO_DURATION;
 
   var take = {
     /**
@@ -378,23 +383,18 @@ var Waggler = (function() {
 
     _setupVideo: function(video, swarmId) {
       var swarm = this.hive.get(swarmId);
-      // video.on("seek", function() {
-      //   // calculate current chunk
-      //   swarm.want(chunkId);
-      // });
 
-      // video.on("play", function() {
-      //   swarm.want(0);
-      // });
+      video.el.addEventListener("timeupdate", function() {
+        var time = this.currentTime;
+        var currentChunkId, nextChunk;
 
-      // video.addEventListener("timeupdate", function() {
-      //   var currentChunkId = parseInt(video.currentTime / 2);
-      //   var nextChunkId = currentChunkId + 1;
-      //   var nextChunk = swarm.chunk(nextChunkId);
-
-      //   if (nextChunk && !nextChunk.data)
-      //     swarm.want(nextChunkId);
-      // });
+        currentChunkId = parseInt(time * DATA_PER_SECOND / CHUNK_SIZE);
+        for (var i = 1; i < WINDOW_SIZE; i++) {
+          nextChunk = swarm.chunk(currentChunkId + i);
+          if (nextChunk && !nextChunk.data)
+            swarm.want(currentChunkId + i);
+        }
+      });
     },
 
     _setupPeer: function(peer) {
@@ -474,7 +474,7 @@ var Waggler = (function() {
       var xhr = new XMLHttpRequest();
 
       xhr.onload = function(e) {
-        if (xhr.status === 206) {
+        if (xhr.status === 206 && !chunk.data) {
           chunk.data = new Uint8Array(xhr.response);
           this.emit("chunk", chunk, "server");
         }
