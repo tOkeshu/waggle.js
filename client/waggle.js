@@ -403,7 +403,7 @@ var Waggler = (function() {
     },
 
     _setupPeer: function(peer) {
-      // peer.on("icecandidate", this._newIceCandidate.bind(this, peer));
+      peer.on("icecandidate", this._newIceCandidate.bind(this, peer));
 
       peer.on("connected", function() {
         console.log("connected with " + peer.id);
