@@ -197,7 +197,7 @@ var Waggler = (function() {
   Video.prototype = {
     buffer: function(chunk) {
       // First chunk
-      if  (this._lastChunkSeen === null) {
+      if (this._lastChunkSeen === null) {
         this.mediaSource.sourceBuffers[0].appendBuffer(chunk.data);
         this._lastChunkSeen = chunk;
         return;
@@ -208,6 +208,9 @@ var Waggler = (function() {
 
       if (chunk.id > this._lastChunkSeen.id + 1) {
         this.queue.push(chunk);
+        this.queue.sort(function(c1, c2) {
+          return c1.id - c2.id;
+        });
         return;
       }
 
@@ -223,7 +226,9 @@ var Waggler = (function() {
         this._lastChunkSeen = chunk;
       }.bind(this));
 
-      this.queue.splice(this.queue.indexOf(this._lastChunkSeen));
+      this.queue = this.queue.filter(function(chunk) {
+        return chunk.id > this._lastChunkSeen.id;
+      }.bind(this));
     }
   }
 
