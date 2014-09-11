@@ -97,8 +97,7 @@ var Peer = (function() {
 
     willConnect: function() {
       var iceState = this.pc.iceConnectionState;
-      if (iceState === "new" ||
-          iceState === "checking")
+      if (iceState === "checking")
         return true;
 
       return false;
