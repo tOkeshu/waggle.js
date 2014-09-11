@@ -301,12 +301,20 @@ var Waggler = (function() {
 
     _onAnswer: function(event) {
       var message = JSON.parse(event.data);
-      this.peers.get(message.peer).complete(message.answer, function() {});
+      var peer = this.peers.get(message.peer);
+      if (!peer)
+        return;
+
+      peer.complete(message.answer, function() {});
     },
 
     _onIceCandidate: function(event) {
       var message = JSON.parse(event.data);
-      this.peers.get(message.peer).addIceCandidate(message.candidate);
+      var peer = this.peers.get(message.peer);
+      if (!peer)
+        return;
+
+      peer.addIceCandidate(message.candidate);
     },
 
     _newIceCandidate: function(peer, event) {
@@ -462,7 +470,12 @@ var Waggler = (function() {
       peers = take.exactly(QUORUM - peers.length)
         .from(this.peers.in(candidates).notConnected());
       peers.forEach(function(uid) {
-        var peer = this.peers.add(uid);
+        var peer;
+
+        if (this.peers.get(uid))
+          return;
+
+        peer = this.peers.add(uid);
         peer.createOffer(function(offer) {
           this._signal({
             type: 'offer',
