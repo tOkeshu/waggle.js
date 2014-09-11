@@ -142,7 +142,7 @@ var Peer = (function() {
 
       if (this.pc.iceConnectionState === "disconnected" ||
           this.pc.iceConnectionState === "closed")
-        this.trigger("diconnected");
+        this.trigger("disconnected");
     },
 
     _send: function(message, blob) {
