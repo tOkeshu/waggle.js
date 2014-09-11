@@ -31,6 +31,8 @@ var Peers = (function() {
     this._timeout = null;
   }
 
+  Peer.TIMEOUT = 10;
+
   Peer.prototype = {
     request: function(chunk) {
       console.log("request chunk #" + chunk.id + " from " + this.id);
@@ -51,14 +53,13 @@ var Peers = (function() {
     },
 
     createOffer: function(callback) {
-      console.log("createoffer");
       this.pc.createOffer(function(offer) {
         this.pc.setLocalDescription(offer, function() {
           callback(offer);
         });
       }.bind(this), function() {});
 
-      this.timeout.after(3).seconds();
+      this.timeout.after(Peer.TIMEOUT).seconds();
     },
 
     createAnswer: function(offer, callback) {
@@ -71,7 +72,7 @@ var Peers = (function() {
         }.bind(this), function() {});
       }.bind(this), function() {});
 
-      this.timeout.after(3).seconds();
+      this.timeout.after(Peer.TIMEOUT).seconds();
     },
 
     complete: function(answer, callback) {
