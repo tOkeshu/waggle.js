@@ -1,0 +1,26 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Waggle Tests</title>
+  <link rel="stylesheet" href="mocha.css" />
+</head>
+<body>
+  <div id="mocha"></div>
+  <script src="expect.js"></script>
+  <script src="mocha.js"></script>
+  <script src="sinon-1.10.3.js"></script>
+  <script src="../client/microevent.js"></script>
+  <script src="../client/tnetbin.js"></script>
+  <script src="../client/webrtc-shim.js"></script>
+  <script src="../client/hive.js"></script>
+  <script src="../client/peers.js"></script>
+  <script>mocha.setup('bdd')</script>
+  <script src="hive_test.js"></script>
+  <script src="peers_test.js"></script>
+  <script>
+    mocha.checkLeaks();
+    mocha.globals(['jQuery']);
+    mocha.run();
+  </script>
+</body>
+</html>
