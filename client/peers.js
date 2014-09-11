@@ -1,4 +1,4 @@
-var Peers = (function() {
+var Peer = (function() {
   var encoder = new tnetbin.Encoder({arraybuffer: true});
   var decoder = new tnetbin.Decoder();
   var blobDecoder = new tnetbin.Decoder({arraybuffer: true});
@@ -188,7 +188,10 @@ var Peers = (function() {
   MicroEvent.mixin(Peer);
   Peer.prototype.on = Peer.prototype.bind;
 
+  return Peer;
+}());
 
+var Peers = (function() {
   function Peers(config) {
     this.peers = {};
     this.unreachable = new Set();
