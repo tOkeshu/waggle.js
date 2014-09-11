@@ -225,7 +225,7 @@ var Peers = (function() {
 
         notConnected: function() {
           return peers.reduce(function(acc, uid) {
-            if (!this.isConnected(uid))
+            if (!this.isConnected(uid) && !this.willConnect(uid))
               acc.push(uid);
 
             return acc;
@@ -246,16 +246,12 @@ var Peers = (function() {
 
     isConnected: function(id) {
       var peer = this.peers[id];
-      if (!peer)
-        return false;
+      return peer ? peer.isConnected() : false;
+    },
 
-      var iceState = peer.pc.iceConnectionState;
-      if (iceState === "failed" ||
-          iceState === "disconnected" ||
-          iceState === "closed")
-        return false;
-
-      return peer.pc.iceConnectionState === "connected";
+    willConnect: function(id) {
+      var peer = this.peers[id];
+      return peer ? peer.willConnect() : false;
     },
 
     connected: function() {
